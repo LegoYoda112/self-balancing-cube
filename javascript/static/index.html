@@ -1,14 +1,26 @@
 <!doctype html>
 <html lang="en-gb">
 <meta charset="utf-8">
-<title>ICRS Print Managment</title>
+<title>Cube Controller!</title>
 <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@500&display=swap" rel="stylesheet">
 <script type="module" src="main.js"></script>
 <script src="js/three.js"></script>
 <script src="https://cdn.plot.ly/plotly-latest.min.js" charset="utf-8"></script>
 
-Hello world!
+<head>
+    <link = rel="stylesheet" href="styles.css">
+</head>
 
-<div id="value"></div>
 
-<div id = "chart"></div>
+<div id="split4">
+    <div id="controls">
+        <div id="value"></div>
+        <div class="control" id="kP">
+            <p>kP</p>
+            <p> number </p>
+        </div>
+    </div>
+    <div id = "control_plot" class = "halfchart"></div>
+    <div id = "vizdiv"></div>
+    <div id = "state_plot" class = "halfchart"></div>
+</div>

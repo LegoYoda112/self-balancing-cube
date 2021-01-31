@@ -9,8 +9,13 @@ var scene, renderer, camera;
 var cube;
 var cube_x_angle = 0;
 
-window.addEventListener("DOMContentLoaded", function () {
+window.addEventListener("load", function () {
     console.log("testing");
+    
+    init();
+    animate();
+
+    initPlots();
 });
 
 
@@ -20,12 +25,12 @@ var angleObject =  {};
 let updateValue = setInterval(function () {
     getData().then(function (data){
         value.innerHTML = data.angle;
-        updatePlot(data.angle);
+        updatePlot(data);
         angleObject = data;
         cube_x_angle = -parseFloat(data.angle) * (2*3.1415/360);
         //console.log(data);
     })
-}, 30);
+}, 50);
 
 function getData() {
     return fetch("/API/angle", {
@@ -38,29 +43,53 @@ function getData() {
 
 
 // ============================ PLOTLY ========================
+const control_plot = "control_plot"
+const state_plot = "state_plot"
+
 function initPlots(){
-    Plotly.plot('chart', [{
+    // Control plot
+    Plotly.plot(control_plot, [{
         y:[0],
-        type:'line'
+        mode:'lines',
+        name: "Proportional"
+    }, {
+        y:[0],
+        mode:'lines',
+        name: "Derivative"
     }]);
+
+    Plotly.relayout(control_plot,{
+         yaxis: {
+                   range: [-2, 2]           
+                 }
+    });
+    
+    
+    Plotly.plot(state_plot, [{
+        y:[0],
+        mode:'lines',
+        name: "test"
+    }]);
+
+    Plotly.relayout(state_plot,{
+         yaxis: {
+                   range: [-45, 45]           
+                 }
+    });
 }
 
-var data_count = 0;
-var max_data = 20;
-function updatePlot(data){
-    Plotly.extendTraces('chart', { y: [[data]] }, [0]);
-    data_count ++;
+var max_data = 100;
 
-    if(data_count > max_data){
-        Plotly.relayout('chart',{
-            xaxis: {
-                      range: [data_count-max_data ,data_count]
-                   }
-       });
-    }
+function updatePlot(data){
+    
+    Plotly.extendTraces(control_plot, { y: [[data.P], [data.D]] }, [0, 1], max_data);
+    Plotly.extendTraces(state_plot, { y: [[data.angle]] }, [0], max_data);
 }
 
 // =================== THREE ========================
+let vizdiv = el("vizdiv");
+
+
 function init(){
 
     // === SCENE
@@ -68,19 +97,27 @@ function init(){
     scene.background = new THREE.Color( 0xcccccc );
     scene.fog = new THREE.FogExp2( 0xcccccc, 0.002);
 
+    // ==== RENDERER
+
+    let scene_width = vizdiv.clientWidth;
+    let scene_height = vizdiv.clientHeight;
+
+    console.log(scene_width);
+    console.log(scene_height);
+
+    renderer = new THREE.WebGLRenderer({ antialias: true } );
+    renderer.setPixelRatio( window.devicePixelRatio );
+    renderer.setSize( scene_width, scene_height);
+    vizdiv.appendChild( renderer.domElement );
+
+
     // === CAMERA
-    camera = new THREE.PerspectiveCamera( 60, (window.innerWidth)/(window.innerHeight/2), 0.1, 1000 );
+    camera = new THREE.PerspectiveCamera( 60, scene_width/scene_height, 0.1, 1000 );
 
     camera.position.z = 5;
     camera.position.y = 3;
 
     camera.rotation.x = -0.5;
-
-    // ==== RENDERER
-    renderer = new THREE.WebGLRenderer({ antialias: true } );
-    renderer.setPixelRatio( window.devicePixelRatio );
-    renderer.setSize( window.innerWidth, window.innerHeight/2);
-    document.body.appendChild( renderer.domElement );
 
     // ==== GOEMETRY
     var geometry = new THREE.BoxGeometry( 1, 1, 1 );
@@ -116,12 +153,6 @@ var animate = function () {
 
 	renderer.render( scene, camera );
 };
-
-
-init();
-animate();
-
-initPlots();
 
 
 
