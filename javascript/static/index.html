@@ -14,13 +14,27 @@
 
 <div id="split4">
     <div id="controls">
-        <div id="value"></div>
-        <div class="control" id="kP">
-            <p>kP</p>
-            <p> number </p>
+        Controls:
+        
+        <template id="control">
+            <div class="control" id="control_id">
+                <div class = "control_title">control_name</div>
+                <input type="number" class = "control_number"></textarea >
+            </div>
+        </template>
+
+        <div class="control" id="buttons">
+            <input type="button" id = "send_button" value = "sEnD iT"></textarea >
+            <input type="button" id = "on_button" value = "ON"></textarea >
+            <input type="button" id = "off_button" value = "OFF!!"></textarea >
         </div>
+
     </div>
+
     <div id = "control_plot" class = "halfchart"></div>
+
     <div id = "vizdiv"></div>
+
     <div id = "state_plot" class = "halfchart"></div>
+
 </div>

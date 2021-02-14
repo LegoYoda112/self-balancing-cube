@@ -22,7 +22,7 @@ let regex = /([A-Za-z]+):\s([-0-9.]+)/g;
 const parser = serial_port.pipe(new Readline());
 
 parser.on('data', function (data) {
-    console.log('Data:', data)
+    //console.log('Data:', data)
     const matches = [...data.matchAll(regex)]
     let output = {};
 
@@ -30,7 +30,7 @@ parser.on('data', function (data) {
         output[match[1]] = match[2];
     })
 
-    console.log(output);
+    //console.log(output);
     currentValue = output;
 })
 
@@ -51,6 +51,18 @@ app.get('/API/', function (req, res) {
 app.get('/API/angle', function (req, res) {
     //console.log("PostingX");
     res.end(JSON.stringify(currentValue));
+});
+
+app.post('/API/send', function(req, res) {
+    body = req.body;
+
+    for(var k in body){
+        send_data = k + " " + body[k] + "\n";
+        serial_port.write(send_data);
+        console.log(send_data)
+    }
+    
+    res.end("thanks.");
 });
 
 // Start server
