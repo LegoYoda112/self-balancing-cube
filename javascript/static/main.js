@@ -12,8 +12,8 @@ var scene, renderer, camera;
 var cube;
 var cube_x_angle = 0;
 
-const control_names = ["setpoint", "kP", "kD", "cutoffAngle"];
-const default_values = [0, -0.12, 0, 20];
+const control_names = ["setpoint", "kP", "kD", "wheel_kI", "cutoffAngle"];
+const default_values = [0, -0.12, 0, 0.002, 20];
 const send_button = el("send_button");
 const on_button = el("on_button");
 const off_button = el("off_button");
@@ -48,7 +48,7 @@ let updateValue = setInterval(function () {
         cube_x_angle = -parseFloat(data.angle) * (2*3.1415/360);
         //console.log(data);
     })
-}, 20);
+}, 50);
 
 function getData() {
     return fetch("/API/angle", {
@@ -101,7 +101,7 @@ var max_data = 100;
 function updatePlot(data){
     
     Plotly.extendTraces(control_plot, { y: [[data.P], [data.D]] }, [0, 1], max_data);
-    Plotly.extendTraces(state_plot, { y: [[data.angle]] }, [0], max_data);
+    Plotly.extendTraces(state_plot, { y: [[data.wheelI]] }, [0], max_data);
 }
 
 // =================== THREE ========================

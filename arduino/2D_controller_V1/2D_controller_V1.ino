@@ -43,8 +43,16 @@ double p = 0;
 double d = 0;
 
 // Wheel speed PID values
+double wheel_kP = 0;
 double wheel_p = 0;
-double wheel_d = 0;
+double wheel_kI = 0;
+double wheel_i = 0;
+double wheel_integrator = 0;
+
+// Wheel
+long wheel_pos = 0;
+long previous_wheel_pos = 0;
+int wheel_speed = 0;
 
 // ON vs OFF
 int on = 1;
@@ -58,7 +66,7 @@ double avg_d = 0;
 
 // Loop timing
 int loop_time_ms = 20; // ms
-double loop_time_s = loop_time_ms / 1000; // seconds!
+double loop_time_s = loop_time_ms / 1000.0; // seconds!
 long start_time_ms = 0;
 
 // ==================================== LOOP
@@ -66,7 +74,11 @@ void loop() {
   start_time_ms = millis(); // loop timing
 
   // Update sensors
-  long newPosition = myEnc.read();
+  previous_wheel_pos = wheel_pos;
+  
+  wheel_pos = myEnc.read();
+  wheel_speed = wheel_pos - previous_wheel_pos;
+  
   mpu6050.update();
 
 
@@ -101,8 +113,13 @@ void loop() {
     rolling_d_index = 0;
   }
 
+  // Wheel stuff
+  wheel_integrator = wheel_integrator * on;
+  wheel_integrator += wheel_speed * loop_time_s;
+  wheel_i = wheel_integrator * wheel_kI * on;
+
   // Set motor speed (actualy power [actually some highly non-linear thing but whatever, we are engineers])
-  setSpeed(p + avg_d);
+  setSpeed(p + avg_d + wheel_i);
 
   // Telementary
   Serial.print(" P: ");
@@ -111,8 +128,13 @@ void loop() {
   Serial.print(avg_d);
   Serial.print(" angle: ");
   Serial.print(angle);
-  Serial.print(" enc: ");
-  Serial.println(newPosition);
+  Serial.print(" wheel: ");
+  Serial.print(wheel_pos);
+  Serial.print(" dwheel: ");
+  Serial.print(wheel_speed);
+  Serial.print(" wheelI: ");
+  Serial.print(wheel_i);
+  Serial.println();
 
   // Parse any incoming serial commands
   parseSerial();
@@ -182,12 +204,10 @@ void parseSerial(){
         setpoint_angle = val;
       }else if(cmd == "on"){
         on = val;
-      }else if(cmd = "cutoffAngle"){
+      }else if(cmd == "cutoffAngle"){
         cutoff_angle = val;
-      }else if(cmd = "wheel_p"){
-        wheel_p = val;
-      }else if(cmd = "wheel_i"){
-        wheel_i = val;
+      }else if(cmd == "wheel_kI"){
+        wheel_kI = val;
       }
     }
 }
