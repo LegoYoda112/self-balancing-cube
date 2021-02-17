@@ -32,7 +32,7 @@ double angle = 0;
 double prev_angle = 0;
 double angle_dot = 0;
 
-double cutoff_angle = 20;
+double cutoff_angle = 0.3;
 
 // Base PID values
 double kP = 0;
@@ -41,24 +41,22 @@ double kD = 0;
 // p and d values for debug
 double p = 0;
 double d = 0;
+double u = 0;
 
-// Wheel speed PID values
-double wheel_kP = 0;
-double wheel_p = 0;
-double wheel_kI = 0;
-double wheel_i = 0;
-double wheel_integrator = 0;
+// Offset integrator
+double offset_gain = 0;
+double setpoint_adjustment = 0;
 
 // Wheel
 long wheel_pos = 0;
 long previous_wheel_pos = 0;
-int wheel_speed = 0;
+double wheel_speed = 0;
 
 // ON vs OFF
 int on = 1;
 
-// Filter stuff -- REPLACE?
-const int num_readings = 20;
+// Filter stuff -- REPLACE? YES REPLACE
+const int num_readings = 5;
 int rolling_d_index = 0;
 double rolling_d [num_readings];
 double total_d = 0;
@@ -77,7 +75,7 @@ void loop() {
   previous_wheel_pos = wheel_pos;
   
   wheel_pos = myEnc.read();
-  wheel_speed = wheel_pos - previous_wheel_pos;
+  wheel_speed = (wheel_pos - previous_wheel_pos);
   
   mpu6050.update();
 
@@ -85,7 +83,7 @@ void loop() {
   //TODO - Convert to radians, makes MATLAB -> real world easier
   // Calculate angular velocity
   prev_angle = angle;
-  angle = -mpu6050.getAngleX() - setpoint_angle;
+  angle = (-mpu6050.getAngleX() * (2*3.1415 / 360)) - setpoint_adjustment;
   angle_dot = angle - prev_angle;
   
   //Serial.print("angleX : ");
@@ -102,38 +100,25 @@ void loop() {
     d = 0;
   }
 
-  // Rolling average filter for derivative term -- TODO: put on angle not the derivative?
-  // Actual TODO: replace with kalman filter!!
-  total_d -= rolling_d[rolling_d_index];
-  rolling_d[rolling_d_index] = d;
-  total_d += rolling_d[rolling_d_index];
-  avg_d = total_d / num_readings;
-  rolling_d_index++;
-  if(rolling_d_index >= num_readings){
-    rolling_d_index = 0;
-  }
-
-  // Wheel stuff
-  wheel_integrator = wheel_integrator * on;
-  wheel_integrator += wheel_speed * loop_time_s;
-  wheel_i = wheel_integrator * wheel_kI * on;
+  u = p + d;
+  
+  //Setpoint offset stuff 
+  setpoint_adjustment = setpoint_adjustment * on + setpoint_angle * (on - 1);
+  setpoint_adjustment += offset_gain * u;
+  
 
   // Set motor speed (actualy power [actually some highly non-linear thing but whatever, we are engineers])
-  setSpeed(p + avg_d + wheel_i);
+  setSpeed(u);
 
   // Telementary
   Serial.print(" P: ");
   Serial.print(p);
   Serial.print(" D: ");
-  Serial.print(avg_d);
+  Serial.print(d);
   Serial.print(" angle: ");
   Serial.print(angle);
-  Serial.print(" wheel: ");
-  Serial.print(wheel_pos);
-  Serial.print(" dwheel: ");
-  Serial.print(wheel_speed);
-  Serial.print(" wheelI: ");
-  Serial.print(wheel_i);
+  Serial.print(" set: ");
+  Serial.print(setpoint_adjustment);
   Serial.println();
 
   // Parse any incoming serial commands
@@ -205,9 +190,9 @@ void parseSerial(){
       }else if(cmd == "on"){
         on = val;
       }else if(cmd == "cutoffAngle"){
-        cutoff_angle = val;
-      }else if(cmd == "wheel_kI"){
-        wheel_kI = val;
+        cutoff_angle = 0.3;
+      }else if(cmd == "offset_gain"){
+        offset_gain = val;
       }
     }
 }

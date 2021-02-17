@@ -12,8 +12,8 @@ var scene, renderer, camera;
 var cube;
 var cube_x_angle = 0;
 
-const control_names = ["setpoint", "kP", "kD", "wheel_kI", "cutoffAngle"];
-const default_values = [0, -0.12, 0, 0.002, 20];
+const control_names = ["setpoint", "kP", "kD", "offset_gain"];
+const default_values = [0, -30, -40, -0.0002];
 const send_button = el("send_button");
 const on_button = el("on_button");
 const off_button = el("off_button");
@@ -45,7 +45,7 @@ let updateValue = setInterval(function () {
     getData().then(function (data){
         updatePlot(data);
         angleObject = data;
-        cube_x_angle = -parseFloat(data.angle) * (2*3.1415/360);
+        cube_x_angle = -parseFloat(data.angle);
         //console.log(data);
     })
 }, 50);
@@ -86,12 +86,16 @@ function initPlots(){
     Plotly.plot(state_plot, [{
         y:[0],
         mode:'lines',
-        name: "test"
+        name: "angle"
+    }, {
+        y:[0],
+        mode:'lines',
+        name: "setpoint"
     }]);
 
     Plotly.relayout(state_plot,{
          yaxis: {
-                   range: [-50, 50]           
+                   range: [-1, 1]           
                  }
     });
 }
@@ -101,7 +105,7 @@ var max_data = 100;
 function updatePlot(data){
     
     Plotly.extendTraces(control_plot, { y: [[data.P], [data.D]] }, [0, 1], max_data);
-    Plotly.extendTraces(state_plot, { y: [[data.wheelI]] }, [0], max_data);
+    Plotly.extendTraces(state_plot, { y: [[data.angle - (-data.set) ], [data.set]] }, [0, 1], max_data);
 }
 
 // =================== THREE ========================
