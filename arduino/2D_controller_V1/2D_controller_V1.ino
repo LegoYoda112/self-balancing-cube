@@ -63,7 +63,7 @@ double total_d = 0;
 double avg_d = 0;
 
 // Loop timing
-int loop_time_ms = 20; // ms
+int loop_time_ms = 100; // ms
 double loop_time_s = loop_time_ms / 1000.0; // seconds!
 long start_time_ms = 0;
 
@@ -181,6 +181,9 @@ void parseSerial(){
 
       String cmd = inputArgs[0];
       double val = inputArgs[1].toDouble();
+
+      Serial.print(cmd);
+      
       if(cmd == "kP"){
         kP = val;
       }else if(cmd == "kD"){

@@ -12,11 +12,14 @@ var scene, renderer, camera;
 var cube;
 var cube_x_angle = 0;
 
-const control_names = ["setpoint", "kP", "kD", "offset_gain"];
-const default_values = [0, -30, -40, -0.0002];
+let saved_data;
+
+const control_names = ["kP", "kD", "kOffset"];
+const default_values = [-2, -0.5, -0.1];
 const send_button = el("send_button");
 const on_button = el("on_button");
 const off_button = el("off_button");
+const calibrate_button = el("calibrate_button");
 
 window.addEventListener("DOMContentLoaded", function () {
 
@@ -45,7 +48,9 @@ let updateValue = setInterval(function () {
     getData().then(function (data){
         updatePlot(data);
         angleObject = data;
-        cube_x_angle = -parseFloat(data.angle);
+        cube_x_angle = -parseFloat(data.roll);
+
+        saved_data = data;
         //console.log(data);
     })
 }, 50);
@@ -69,11 +74,15 @@ function initPlots(){
     Plotly.plot(control_plot, [{
         y:[0],
         mode:'lines',
-        name: "Proportional"
+        name: "Wheel A"
     }, {
         y:[0],
         mode:'lines',
-        name: "Derivative"
+        name: "Wheel B"
+    }, {
+        y:[0],
+        mode:'lines',
+        name: "Wheel C"
     }]);
 
     Plotly.relayout(control_plot,{
@@ -86,11 +95,11 @@ function initPlots(){
     Plotly.plot(state_plot, [{
         y:[0],
         mode:'lines',
-        name: "angle"
+        name: "Roll"
     }, {
         y:[0],
         mode:'lines',
-        name: "setpoint"
+        name: "Pitch"
     }]);
 
     Plotly.relayout(state_plot,{
@@ -104,8 +113,8 @@ var max_data = 100;
 
 function updatePlot(data){
     
-    Plotly.extendTraces(control_plot, { y: [[data.P], [data.D]] }, [0, 1], max_data);
-    Plotly.extendTraces(state_plot, { y: [[data.angle - (-data.set) ], [data.set]] }, [0, 1], max_data);
+    Plotly.extendTraces(control_plot, { y: [[data.wheelA], [data.wheelB], [data.wheelC]] }, [0, 1, 2], max_data);
+    Plotly.extendTraces(state_plot, { y: [[data.roll], [data.pitch]] }, [0, 1], max_data);
 }
 
 // =================== THREE ========================
@@ -235,6 +244,11 @@ off_button.onclick = function () {
     sendData({on: "0"});
 }
 
+calibrate_button.onclick = function() {
+    console.log("Calibrating offsets");
+    sendData({rollSP: saved_data.roll});
+    sendData({pitchSP: saved_data.pitch});
+}
 
 
 

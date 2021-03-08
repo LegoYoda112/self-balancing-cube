@@ -10,7 +10,7 @@ let currentValue = 0;
 const SerialPort = require('serialport');
 const Readline = require('@serialport/parser-readline')
 
-const serial_port = new SerialPort('COM6', {baudRate: 115200});
+const serial_port = new SerialPort('COM4', {baudRate: 115200});
 
 SerialPort.list().then(
     ports => ports.forEach(console.log),
