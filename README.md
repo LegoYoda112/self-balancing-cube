@@ -1,3 +1,5 @@
+Note: Code is fairly undocumented, look at your own risk lol. I will be attempting to add better documentation soon though.
+
 # self-balancing-cube
 Code for a self balancing cube I'm building for module corsework. Turns out the people on twitter enjoyed it:
 https://twitter.com/GoddenThomas/status/1369384176256946182
